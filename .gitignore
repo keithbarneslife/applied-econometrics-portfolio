@@ -1,0 +1,14 @@
+# R
+.Rhistory
+.Rdata
+.RData
+.Ruserdata
+.Rproj.user/
+
+# macOS
+.DS_Store
+
+# Data files (large)
+*.csv.gz
+*.rds
+*.RDS
