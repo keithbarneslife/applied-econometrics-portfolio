@@ -49,3 +49,22 @@ Option B: Download CSV from https://databank.worldbank.org/source/world-developm
 - You can explain what `pivot_longer()`, `filter()`, `mutate()`, `group_by()`, and `ggplot()` do
 
 ## Estimated Sessions: ~3
+
+
+---
+
+## Saving Your Work (iPad / webRios Workflow)
+
+> See [WORKFLOW.md](../WORKFLOW.md) for full setup instructions.
+
+1. Write and run your code in **webRios**
+2. When done, copy your code
+3. In **Working Copy**, navigate to `01-lac-gdp-trends/`
+4. Create `analysis.Rmd` (tap + → New File), paste your code, save
+5. Commit with a message like "Project 01: [what you did this session]"
+6. Push
+
+**Files to create in this folder:**
+- `analysis.Rmd` — your main analysis code
+- `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
+- Any exported plots (`.png`)

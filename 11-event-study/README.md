@@ -48,3 +48,22 @@ feols(y ~ i(time_to_treat, ref = -1) | unit + year, data = df, cluster = ~unit)
 - You can explain what pre-treatment coefficients near zero mean for identification
 
 ## Estimated Sessions: ~3
+
+
+---
+
+## Saving Your Work (iPad / webRios Workflow)
+
+> See [WORKFLOW.md](../WORKFLOW.md) for full setup instructions.
+
+1. Write and run your code in **webRios**
+2. When done, copy your code
+3. In **Working Copy**, navigate to `11-event-study/`
+4. Create `analysis.Rmd` (tap + → New File), paste your code, save
+5. Commit with a message like "Project 11: [what you did this session]"
+6. Push
+
+**Files to create in this folder:**
+- `analysis.Rmd` — your main analysis code
+- `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
+- Any exported plots (`.png`)

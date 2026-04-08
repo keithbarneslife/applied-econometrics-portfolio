@@ -51,3 +51,22 @@ Alternatively, data is available from David Card's UC Berkeley website.
 - You can explain the parallel trends assumption in this specific context
 
 ## Estimated Sessions: ~4
+
+
+---
+
+## Saving Your Work (iPad / webRios Workflow)
+
+> See [WORKFLOW.md](../WORKFLOW.md) for full setup instructions.
+
+1. Write and run your code in **webRios**
+2. When done, copy your code
+3. In **Working Copy**, navigate to `10-card-krueger-replication/`
+4. Create `analysis.Rmd` (tap + → New File), paste your code, save
+5. Commit with a message like "Project 10: [what you did this session]"
+6. Push
+
+**Files to create in this folder:**
+- `analysis.Rmd` — your main analysis code
+- `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
+- Any exported plots (`.png`)

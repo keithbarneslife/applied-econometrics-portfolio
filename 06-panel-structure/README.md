@@ -43,3 +43,22 @@ Key variables: `rgdpna` (real GDP), `pop` (population), `hc` (human capital inde
 - You can explain in plain language what "within variation" means and why FE uses only this variation
 
 ## Estimated Sessions: ~2
+
+
+---
+
+## Saving Your Work (iPad / webRios Workflow)
+
+> See [WORKFLOW.md](../WORKFLOW.md) for full setup instructions.
+
+1. Write and run your code in **webRios**
+2. When done, copy your code
+3. In **Working Copy**, navigate to `06-panel-structure/`
+4. Create `analysis.Rmd` (tap + → New File), paste your code, save
+5. Commit with a message like "Project 06: [what you did this session]"
+6. Push
+
+**Files to create in this folder:**
+- `analysis.Rmd` — your main analysis code
+- `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
+- Any exported plots (`.png`)

@@ -40,3 +40,22 @@ Penn World Tables 10.01 (same as Project 6).
 - You can state the strict exogeneity assumption and what it requires
 
 ## Estimated Sessions: ~3
+
+
+---
+
+## Saving Your Work (iPad / webRios Workflow)
+
+> See [WORKFLOW.md](../WORKFLOW.md) for full setup instructions.
+
+1. Write and run your code in **webRios**
+2. When done, copy your code
+3. In **Working Copy**, navigate to `07-first-fixed-effects/`
+4. Create `analysis.Rmd` (tap + → New File), paste your code, save
+5. Commit with a message like "Project 07: [what you did this session]"
+6. Push
+
+**Files to create in this folder:**
+- `analysis.Rmd` — your main analysis code
+- `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
+- Any exported plots (`.png`)
