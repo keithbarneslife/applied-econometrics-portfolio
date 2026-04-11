@@ -1,49 +1,122 @@
 # Project 6: Understanding Panel Structure
 
 ## Economic Question
-None — this project is about understanding *what panel data looks like* and what fixed effects will exploit.
+None — this is about understanding what panel data looks like and what fixed effects will exploit.
 
 ## What You're Learning
-The distinction between within-unit and between-unit variation. Fixed effects estimation uses only within-unit variation. If all the action in your data is between units, FE will have little power. You need to see this before estimating anything.
+The distinction between within-unit and between-unit variation. No regression in this project.
 
-## Theory to Read
-*The Effect*, Chapter 16 (Fixed Effects), first half only — the conceptual setup before the estimation.
-
-**Maths thread:** Before starting Phase 2a, work through the Matrix Algebra section of `docs/maths-foundations.md`. You'll need this for Project 7.
-
-## Data Source
-**Penn World Tables 10.01**
-
-Option A (recommended): `install.packages("pwt10"); library(pwt10); data("pwt10.01")`
-
-Option B: Download from https://www.rug.nl/ggdc/productivity/pwt/
-
-Key variables: `rgdpna` (real GDP), `pop` (population), `hc` (human capital index), `country`, `year`
+## Before You Start
+- Read *The Effect*, Chapter 16 (Fixed Effects), first half only.
+- **Maths thread:** Work through the Matrix Algebra section of `docs/maths-foundations.md`.
 
 ## R Packages Needed
-`tidyverse`, `pwt10`
+```r
+library(tidyverse)
+library(pwt10)
+```
 
-## Steps
+---
 
-### Session 1: Explore and compute
-- Load PWT data. Filter to a sensible set of countries (e.g., OECD, or a mix of developed/developing)
-- Compute GDP per capita: `rgdpna / pop`
-- For a variable like GDP growth, compute:
-  - **Between variation:** each country's mean across all years → `group_by(country) %>% summarise(mean_gdp = mean(gdp_pc))`
-  - **Within variation:** deviation from each country's mean → `group_by(country) %>% mutate(within_gdp = gdp_pc - mean(gdp_pc))`
+## Session 1: Explore Panel Data (~30 min)
 
-### Session 2: Visualise
-- Plot the between variation: bar chart of country means
-- Plot the within variation: line chart of deviations from mean for a selection of countries
-- Spaghetti plot: all countries' GDP trajectories on one chart, then the same chart after demeaning (subtracting each country's mean). The demeaned version is what FE "sees"
-- **No regression in this project.** Just data exploration.
+### Step 1: Load Penn World Tables
+```r
+library(tidyverse)
+library(pwt10)
+data("pwt10.01")
+
+pwt <- pwt10.01 %>%
+  filter(year >= 1990) %>%
+  mutate(gdp_pc = rgdpna / pop) %>%
+  select(country, isocode, year, gdp_pc, hc, pop) %>%
+  drop_na(gdp_pc)
+
+glimpse(pwt)
+n_distinct(pwt$country)
+```
+How many countries? How many years per country?
+```r
+pwt %>% count(country) %>% summary()
+```
+
+### Step 2: Pick a manageable subset
+```r
+selected <- c("USA", "GBR", "DEU", "FRA", "JPN", "BRA", "IND", "CHN", "NGA", "ZAF")
+pwt_sub <- pwt %>% filter(isocode %in% selected)
+```
+
+### Step 3: Compute between-country variation
+This is the variation in *country averages* — how different countries are from each other on average:
+```r
+between <- pwt_sub %>%
+  group_by(country) %>%
+  summarise(mean_gdp = mean(gdp_pc))
+
+ggplot(between, aes(x = reorder(country, mean_gdp), y = mean_gdp)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Between-Country Variation: Mean GDP per Capita",
+       x = "", y = "Mean GDP per capita (1990–2019)") +
+  theme_minimal()
+```
+
+### Step 4: Compute within-country variation
+This is variation *over time within each country* — deviations from each country's own mean:
+```r
+pwt_sub <- pwt_sub %>%
+  group_by(country) %>%
+  mutate(
+    mean_gdp = mean(gdp_pc),
+    within_gdp = gdp_pc - mean_gdp
+  ) %>%
+  ungroup()
+
+ggplot(pwt_sub, aes(x = year, y = within_gdp, colour = country)) +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Within-Country Variation: Deviations from Country Mean",
+       y = "GDP per capita minus country mean", x = "Year") +
+  theme_minimal()
+```
+**This demeaned version is what fixed effects "see."** The FE estimator throws away all the between-country differences and uses only these within-country deviations.
+
+---
+
+## Session 2: The Spaghetti Plot (~20 min)
+
+### Step 1: Raw data — all countries
+```r
+ggplot(pwt_sub, aes(x = year, y = gdp_pc, colour = country)) +
+  geom_line(linewidth = 0.8) +
+  labs(title = "GDP per Capita: Raw Data", y = "GDP per capita", x = "Year") +
+  theme_minimal()
+```
+The USA and Japan are way above Nigeria and India. The between-country variation dominates.
+
+### Step 2: Same data, demeaned
+```r
+ggplot(pwt_sub, aes(x = year, y = within_gdp, colour = country)) +
+  geom_line(linewidth = 0.8) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "GDP per Capita: Demeaned (What FE Sees)",
+       y = "Deviation from country mean", x = "Year") +
+  theme_minimal()
+```
+Now all countries are centred on zero. You're looking at whether a country is above or below *its own average*, not whether it's richer than another country. **This is the identifying variation in a fixed effects regression.**
+
+If there's very little within-country variation in a variable (e.g., geography, colonial history), FE cannot estimate its effect. This is both the strength and the limitation of the method.
+
+**Save and commit: "Project 06: complete".**
+
+---
 
 ## What "Done" Looks Like
-- R Markdown with visualisations of between and within variation
-- You can explain in plain language what "within variation" means and why FE uses only this variation
+- `analysis.R` with between and within variation computed and visualised
+- You can explain what "within variation" means and why FE uses only this
+- No regression was run — that's Project 7
 
 ## Estimated Sessions: ~2
-
 
 ---
 
@@ -54,11 +127,11 @@ Key variables: `rgdpna` (real GDP), `pop` (population), `hc` (human capital inde
 1. Write and run your code in **webRios**
 2. When done, copy your code
 3. In **Working Copy**, navigate to `06-panel-structure/`
-4. Create `analysis.Rmd` (tap + → New File), paste your code, save
+4. Create `analysis.R` (tap + → New File), paste your code, save
 5. Commit with a message like "Project 06: [what you did this session]"
 6. Push
 
 **Files to create in this folder:**
-- `analysis.Rmd` — your main analysis code
+- `analysis.R` — your main analysis code
 - `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
 - Any exported plots (`.png`)

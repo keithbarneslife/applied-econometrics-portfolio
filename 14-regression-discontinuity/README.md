@@ -1,52 +1,126 @@
-# Project 14: Regression Discontinuity
+# Project 14: Regression Discontinuity — Lee (2008)
 
 ## Economic Question
-Does winning an election by a tiny margin give the incumbent party an advantage in the next election? (Lee, 2008)
+Does winning an election by a tiny margin give the incumbent party an advantage next time?
 
 ## What You're Learning
-RD design: the logic of local randomisation at a threshold, bandwidth selection, and the `rdrobust` package. The beauty of RD is that the causal logic is visual.
+RD design, `rdrobust` package, bandwidth selection, and RD plots.
 
-## Theory to Read
-*The Effect*, Chapter 20 (Regression Discontinuity). Key concepts: sharp vs fuzzy RD, bandwidth selection (the bias-variance trade-off), the continuity assumption.
-
-## Data Source
-**Lee (2008)** data is built into the `rdrobust` package:
-```r
-install.packages("rdrobust")
-library(rdrobust)
-data(rdrobust_RDsenate)
-```
-Variables: `margin` (running variable: vote margin), `vote` (outcome: vote share in next election)
+## Before You Start
+Read *The Effect*, Chapter 20 (Regression Discontinuity).
 
 ## R Packages Needed
-`tidyverse`, `rdrobust`
+```r
+library(tidyverse)
+library(rdrobust)
+```
 
-## Steps
+---
 
-### Session 1: Visualise
-- Plot `vote` (next election outcome) against `margin` (current election margin)
-- Add a vertical line at the threshold (margin = 0)
-- The discontinuity should be visually obvious: a jump in the outcome at the threshold
-- Use `rdplot()` from rdrobust for the binned scatter plot: `rdplot(y = vote, x = margin)`
+## Session 1: Visualise the Discontinuity (~30 min)
 
-### Session 2: Estimate
-- Run: `rdrobust(y = vote, x = margin)`
-- Interpret the output: the local treatment effect at the threshold, the bandwidth chosen, the confidence interval
-- Try different bandwidths manually to see how the estimate changes
+### Step 1: Load built-in data
+```r
+library(tidyverse)
+library(rdrobust)
 
-### Session 3: Robustness and write-up
-- Placebo test: is there a discontinuity at fake thresholds (e.g., margin = 5 or margin = -5)?
-- Density test: is there bunching of observations just above or below the threshold? (McCrary test — evidence of manipulation)
-- Write up: explain the RD logic in plain language. Why is "just above" vs "just below" a plausible comparison?
-- **This completes Phase 2.** Do a full calibration review before starting Phase 3.
+data(rdrobust_RDsenate)
+# This gives you two vectors: R (running variable: vote margin) and Y (outcome: next-election vote share)
+
+rd_data <- tibble(margin = R, vote = Y)
+glimpse(rd_data)
+```
+
+### Step 2: Scatter plot
+```r
+ggplot(rd_data, aes(x = margin, y = vote)) +
+  geom_point(alpha = 0.3, size = 0.8) +
+  geom_vline(xintercept = 0, colour = "red", linetype = "dashed") +
+  labs(title = "RD Plot: US Senate Elections",
+       x = "Vote margin at t (positive = won)",
+       y = "Vote share at t+1") +
+  theme_minimal()
+```
+You should see a visible jump at margin = 0. Candidates who *barely* won do better next time than candidates who *barely* lost. The jump at the threshold is the causal effect of incumbency.
+
+### Step 3: Official RD plot with binning
+```r
+rdplot(y = rd_data$vote, x = rd_data$margin,
+       title = "RD Plot: Incumbency Advantage",
+       x.label = "Vote margin", y.label = "Next-election vote share")
+```
+`rdplot()` bins the data and fits separate polynomials on each side of the cutoff. The discontinuity should be visually clear.
+
+---
+
+## Session 2: Estimate (~20 min)
+
+### Step 1: Run rdrobust
+```r
+rd_result <- rdrobust(y = rd_data$vote, x = rd_data$margin)
+summary(rd_result)
+```
+Key output:
+- **Coef:** The estimated treatment effect at the threshold
+- **Robust CI:** The confidence interval using bias-corrected methods
+- **BW:** The bandwidth selected by the data-driven procedure
+- **N:** The effective sample size within the bandwidth
+
+### Step 2: Try different bandwidths
+```r
+rd_narrow <- rdrobust(y = rd_data$vote, x = rd_data$margin, h = 5)
+rd_wide <- rdrobust(y = rd_data$vote, x = rd_data$margin, h = 15)
+
+cat("Narrow bandwidth (h=5):", rd_narrow$coef[1], "\n")
+cat("Default bandwidth:", rd_result$coef[1], "\n")
+cat("Wide bandwidth (h=15):", rd_wide$coef[1], "\n")
+```
+The estimate should be fairly stable across bandwidths. If it changes dramatically, the design may be fragile.
+
+---
+
+## Session 3: Robustness and Write-Up (~20 min)
+
+### Step 1: Placebo test — fake cutoffs
+```r
+rd_placebo5 <- rdrobust(y = rd_data$vote, x = rd_data$margin, c = 5)
+rd_placebo_neg5 <- rdrobust(y = rd_data$vote, x = rd_data$margin, c = -5)
+
+cat("Placebo at +5:", rd_placebo5$coef[1], "p =", rd_placebo5$pv[1], "\n")
+cat("Placebo at -5:", rd_placebo_neg5$coef[1], "p =", rd_placebo_neg5$pv[1], "\n")
+```
+There should be NO discontinuity at fake cutoffs. If there is, something is wrong with the design.
+
+### Step 2: Density test (McCrary test)
+```r
+rddensity::rddensity(rd_data$margin) %>% summary()
+```
+If this is significant, there may be manipulation around the threshold (candidates engineering narrow wins). You'll need to install `rddensity` if not already present.
+
+### Step 3: Write-up
+```r
+# The RD estimate of the incumbency advantage is approximately [X] percentage
+# points, meaning barely winning an election causes a [X] pp increase in
+# vote share in the next election.
+#
+# The identification relies on the continuity assumption: candidates just
+# above and just below the 50% threshold are comparable in all respects
+# except for winning/losing. This is plausible because at very narrow margins,
+# the outcome is essentially random.
+#
+# PHASE 2 COMPLETE. Full calibration review before Phase 3.
+```
+
+**Save and commit: "Project 14: complete — Phase 2 done".**
+
+---
 
 ## What "Done" Looks Like
-- R Markdown with RD plot, rdrobust estimation, placebo tests, and written interpretation
-- You can explain the continuity assumption and why RD provides a credible causal estimate near the threshold
-- **14 projects on GitHub.** The causal inference toolkit is complete.
+- `analysis.R` with RD plot, rdrobust estimation, placebo tests, and written interpretation
+- You can explain the continuity assumption and bandwidth selection
+- **All four causal inference methods learned.** Calibration review in `reviews/phase2cd-calibration.md`.
 
 ## Estimated Sessions: ~3
-
 
 ---
 
@@ -57,11 +131,11 @@ Variables: `margin` (running variable: vote margin), `vote` (outcome: vote share
 1. Write and run your code in **webRios**
 2. When done, copy your code
 3. In **Working Copy**, navigate to `14-regression-discontinuity/`
-4. Create `analysis.Rmd` (tap + → New File), paste your code, save
+4. Create `analysis.R` (tap + → New File), paste your code, save
 5. Commit with a message like "Project 14: [what you did this session]"
 6. Push
 
 **Files to create in this folder:**
-- `analysis.Rmd` — your main analysis code
+- `analysis.R` — your main analysis code
 - `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
 - Any exported plots (`.png`)

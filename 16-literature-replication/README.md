@@ -41,6 +41,7 @@ Engaging with the research frontier: reading a paper closely enough to reproduce
 ## Estimated Sessions: ~6
 
 
+
 ---
 
 ## Saving Your Work (iPad / webRios Workflow)

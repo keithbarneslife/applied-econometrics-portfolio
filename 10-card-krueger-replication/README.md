@@ -4,54 +4,116 @@
 Did New Jersey's 1992 minimum wage increase reduce employment in the fast-food sector?
 
 ## What You're Learning
-Applying DiD to real data, visualising parallel pre-trends, and interpreting results as an economist. This is also a lesson in how empirical evidence can challenge simple theoretical predictions.
+DiD with real data, parallel pre-trends, and interpreting results through economic theory (competitive vs monopsony labour markets).
 
-## Theory to Read
-*The Effect*, Chapter 18 (continue). Also read (or skim) the original paper: Card, D. & Krueger, A. (1994). "Minimum Wages and Employment: A Case Study of the Fast-Food Industry in New Jersey and Pennsylvania." *American Economic Review*, 84(4), 772–793.
-
-**Economic theory context:** The standard competitive labour market model predicts that a minimum wage above equilibrium reduces employment. Card & Krueger found the opposite. The monopsony model provides a theoretical framework where minimum wages *can* increase employment — when employers have wage-setting power. This is a beautiful example of theory and empirics in dialogue.
-
-## Data Source
-**`wooldridge` R package:**
-```r
-install.packages("wooldridge")
-library(wooldridge)
-data("njmin3")
-```
-
-Alternatively, data is available from David Card's UC Berkeley website.
+## Before You Start
+Read or skim Card & Krueger (1994), AER 84(4). Also re-read *The Effect*, Chapter 18.
 
 ## R Packages Needed
-`tidyverse`, `fixest`, `modelsummary`, `wooldridge`
+```r
+library(tidyverse)
+library(fixest)
+library(modelsummary)
+library(wooldridge)
+```
 
-## Steps
+---
 
-### Session 1: Get data and explore
-- Load `njmin3` dataset. Examine variables: state (NJ/PA), employment (FTE), wages, before/after
-- Compute summary statistics by state × period
-- Compute the four DiD cell means manually (as you did in Project 9)
+## Session 1: Explore the Data (~20 min)
 
-### Session 2: Estimate
-- Run the DiD regression: `feols(fte ~ nj + after + nj:after, data = njmin3)`
-- Or equivalently: `feols(fte ~ i(nj, after), data = njmin3)`
-- What is the estimated treatment effect? Is it statistically significant?
-- Compare to Card & Krueger's published results
+### Step 1: Load the data
+```r
+library(tidyverse)
+library(wooldridge)
+data("njmin3")
 
-### Session 3: Pre-trends and robustness
-- Visualise: plot average employment over time for NJ and PA. Do the pre-trends look parallel?
-- Try alternative specifications: different control variables, different employment measures
-- Produce a clean regression table with `modelsummary`
+glimpse(njmin3)
+```
+Key variables: `fte` (full-time equivalent employment), `nj` (1 = New Jersey, 0 = Pennsylvania), `d` (1 = after the minimum wage increase), `wage_st` (starting wage).
 
-### Session 4: Write up
-- Interpret the results economically. What does this tell us about the competitive vs monopsony model of labour markets?
-- Discuss limitations: is this a clean natural experiment? What could threaten identification?
+### Step 2: Compute the four cell means
+```r
+njmin3 %>%
+  group_by(nj, d) %>%
+  summarise(mean_fte = mean(fte, na.rm = TRUE), n = n(), .groups = "drop")
+```
+This is your 2×2 table. Compute DiD manually:
+```r
+means <- njmin3 %>%
+  group_by(nj, d) %>%
+  summarise(m = mean(fte, na.rm = TRUE), .groups = "drop")
+
+did <- (means$m[means$nj==1 & means$d==1] - means$m[means$nj==1 & means$d==0]) -
+       (means$m[means$nj==0 & means$d==1] - means$m[means$nj==0 & means$d==0])
+cat("Manual DiD:", did, "\n")
+```
+
+---
+
+## Session 2: Estimate (~20 min)
+
+### Step 1: DiD regression
+```r
+library(fixest)
+m_did <- feols(fte ~ nj * d, data = njmin3)
+summary(m_did)
+```
+The coefficient on `nj:d` is the DiD estimate — the effect of NJ's minimum wage increase on employment. Check it matches your manual calculation.
+
+### Step 2: With controls
+```r
+m_did2 <- feols(fte ~ nj * d + kfc + roys + wendys, data = njmin3)
+summary(m_did2)
+```
+Adding chain dummies as controls. Does the DiD estimate change much?
+
+---
+
+## Session 3: Interpret (~30 min)
+
+### Step 1: Visualise
+```r
+ggplot(means, aes(x = factor(d), y = m, colour = factor(nj), group = nj)) +
+  geom_point(size = 4) + geom_line(linewidth = 1) +
+  scale_colour_manual(values = c("0" = "grey50", "1" = "steelblue"),
+                      labels = c("Pennsylvania", "New Jersey")) +
+  labs(title = "Card & Krueger: Fast-Food Employment Before/After",
+       x = "Period (0 = Before, 1 = After)", y = "Mean FTE Employment",
+       colour = "") +
+  theme_minimal()
+```
+
+### Step 2: Regression table
+```r
+library(modelsummary)
+modelsummary(list("Basic DiD" = m_did, "With Controls" = m_did2),
+             stars = c("***" = 0.01, "**" = 0.05, "*" = 0.1))
+```
+
+### Step 3: Economic interpretation
+```r
+# The standard competitive model predicts: minimum wage ↑ → employment ↓
+# Card & Krueger found: no decrease, possibly an increase.
+#
+# The monopsony model explains this: when a single employer (or few employers)
+# dominate the local labour market, they set wages below the competitive level.
+# A minimum wage forces wages up toward the competitive equilibrium, which can
+# INCREASE employment (moving along the labour supply curve).
+#
+# This paper was revolutionary because it used a quasi-experimental design
+# (NJ vs PA as a natural experiment) to challenge textbook predictions.
+```
+
+**Save and commit: "Project 10: complete".**
+
+---
 
 ## What "Done" Looks Like
-- R Markdown replicating Card & Krueger's main result with DiD, including pre-trend visualisation and economic interpretation
-- You can explain the parallel trends assumption in this specific context
+- `analysis.R` replicating Card & Krueger's main DiD result
+- 2×2 plot and regression table
+- Written economic interpretation connecting results to theory
 
 ## Estimated Sessions: ~4
-
 
 ---
 
@@ -62,11 +124,11 @@ Alternatively, data is available from David Card's UC Berkeley website.
 1. Write and run your code in **webRios**
 2. When done, copy your code
 3. In **Working Copy**, navigate to `10-card-krueger-replication/`
-4. Create `analysis.Rmd` (tap + → New File), paste your code, save
+4. Create `analysis.R` (tap + → New File), paste your code, save
 5. Commit with a message like "Project 10: [what you did this session]"
 6. Push
 
 **Files to create in this folder:**
-- `analysis.Rmd` — your main analysis code
+- `analysis.R` — your main analysis code
 - `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
 - Any exported plots (`.png`)
