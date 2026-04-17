@@ -127,17 +127,8 @@ Fill in the actual numbers from your output.
 ## Estimated Sessions: ~2
 ---
 
-## Workflow Reminder
+## Workflow
 
-**See [WORKFLOW.md](../WORKFLOW.md) for the full two-pane workflow and sandbox convention.**
+Open `03-bivariate-ols/analysis.R` in Working Copy, webRios alongside. Paste file contents into webRios to reload state. Write new commands in the file, copy over to webRios to run. Commit and push at the end.
 
-Quick version:
-1. Open `03-bivariate-ols/analysis.R` in Working Copy. This is your source of truth.
-2. Open webRios alongside it.
-3. Type new commands into `analysis.R` → copy → paste into webRios → run.
-4. Commands that create objects go in the pipeline section. Inspection commands (`glimpse`, `head`, `summary`, etc.) go in the sandbox section, commented out.
-5. At the end of the session, commit and push from Working Copy. Suggested message: `"Project 03: [what you did this session]"`.
-
-**Never copy from the webRios console back into `analysis.R`.** Console output is disposable.
-
-**At the end of the project:** create `reflection.md` using the template in `docs/tracking.md`.
+See [WORKFLOW.md](../WORKFLOW.md) for the full version.
