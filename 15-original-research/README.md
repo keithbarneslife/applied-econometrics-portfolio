@@ -43,23 +43,19 @@ No new theory. You're applying what you've learned in Projects 1–14. Re-read t
 - This is what you'd show a PhD admissions panel or potential supervisor
 
 ## Estimated Sessions: ~8
-
-
-
 ---
 
-## Saving Your Work (iPad / webRios Workflow)
+## Workflow Reminder
 
-> See [WORKFLOW.md](../WORKFLOW.md) for full setup instructions.
+**See [WORKFLOW.md](../WORKFLOW.md) for the full two-pane workflow and sandbox convention.**
 
-1. Write and run your code in **webRios**
-2. When done, copy your code
-3. In **Working Copy**, navigate to `15-original-research/`
-4. Create `analysis.Rmd` (tap + → New File), paste your code, save
-5. Commit with a message like "Project 15: [what you did this session]"
-6. Push
+Quick version:
+1. Open `15-original-research/analysis.Rmd` in Working Copy. This is your source of truth.
+2. Open webRios alongside it.
+3. Type new commands into `analysis.Rmd` → copy → paste into webRios → run.
+4. Commands that create objects go in the pipeline section. Inspection commands (`glimpse`, `head`, `summary`, etc.) go in the sandbox section, commented out.
+5. At the end of the session, commit and push from Working Copy. Suggested message: `"Project 15: [what you did this session]"`.
 
-**Files to create in this folder:**
-- `analysis.Rmd` — your main analysis code
-- `reflection.md` — fill in after completing the project (template in `docs/tracking.md`)
-- Any exported plots (`.png`)
+**Never copy from the webRios console back into `analysis.Rmd`.** Console output is disposable.
+
+**At the end of the project:** create `reflection.md` using the template in `docs/tracking.md`.
